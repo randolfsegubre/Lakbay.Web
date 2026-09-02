@@ -1,0 +1,26 @@
+## Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+## Next.js
+.next/
+out/
+build/
+
+## Env / secrets — never commit
+.env
+.env.local
+.env.*.local
+
+## Testing
+coverage/
+playwright-report/
+test-results/
+
+## OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/*
+!.vscode/extensions.json
