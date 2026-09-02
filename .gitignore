@@ -7,6 +7,9 @@ yarn-error.log*
 .next/
 out/
 build/
+next-env.d.ts
+*.tsbuildinfo
+.vercel
 
 ## Env / secrets — never commit
 .env
