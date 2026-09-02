@@ -13,11 +13,11 @@ real documentation before touching anything.
    is this repo's core decision: fully headless, not Razor-hosted.
 2. [../Lakbay.Docs/docs/02_BUILD_PLAN.md](../Lakbay.Docs/docs/02_BUILD_PLAN.md)
    — **Phase 0** (scaffolding), **Phase 2** (storefront built against
-   `Lakbay.SearchApi` — this repo's first real work, before `Lakbay.Cms`
+   `Lakbay.AvailabilityApi` — this repo's first real work, before `Lakbay.Cms`
    even exists, and the path it keeps using afterward — see
    [ADR-0007](../Lakbay.Docs/docs/adr/ADR-0007-searchapi-is-real-not-mock.md),
-   this repo is **not** repointed away from `Lakbay.SearchApi` at Phase 3),
-   **Phase 3** (`Lakbay.SearchApi`'s data source switches from hand-seeded
+   this repo is **not** repointed away from `Lakbay.AvailabilityApi` at Phase 3),
+   **Phase 3** (`Lakbay.AvailabilityApi`'s data source switches from hand-seeded
    to synced-from-`Lakbay.Cms` — zero code changes expected here, this
    phase is verification), and **Phase 4** (checkout UI, talks to
    `Lakbay.Booking`) are this repo's phases.
@@ -31,7 +31,12 @@ real documentation before touching anything.
 5. [ADR-0008](../Lakbay.Docs/docs/adr/ADR-0008-realtime-availability-propagation.md)
    — listing pages hold a live Azure SignalR connection and invalidate
    just the affected item's RTK Query cache entry on a push notification,
-   rather than polling `Lakbay.SearchApi` or reloading the page.
+   rather than polling `Lakbay.AvailabilityApi` or reloading the page.
+6. [ADR-0012](../Lakbay.Docs/docs/adr/ADR-0012-block-rendering-in-react.md)
+   — how `Lakbay.Cms`-authored page content (Block List/Grid) actually
+   reaches the screen: a block registry mapping Umbraco element-type alias
+   to a React component. Read this before building any page-content
+   rendering — it's not ad hoc per page.
 
 See [ADR-0006](../Lakbay.Docs/docs/adr/ADR-0006-headless-cms-no-razor-ui.md)
 for the full reasoning — `Lakbay.Cms` never renders a page or holds
@@ -44,7 +49,7 @@ folder to `Lakbay.Cms` for the public site, read this ADR again first.
 
 Next.js (App Router) storefront: marketing pages, catalog browsing,
 booking flow. SSR/ISR for SEO. Talks to the GraphQL layer only — never
-touches a database directly. In practice: `Lakbay.SearchApi` for all
+touches a database directly. In practice: `Lakbay.AvailabilityApi` for all
 catalog browsing/search (the default, and the permanent path — see
 [06_SYSTEM_ARCHITECTURE.md](../Lakbay.Docs/docs/06_SYSTEM_ARCHITECTURE.md)),
 `Lakbay.Booking` for checkout, and optionally `Lakbay.Cms` directly for
