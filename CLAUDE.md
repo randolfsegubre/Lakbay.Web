@@ -25,11 +25,12 @@ real documentation before touching anything.
    (booking wizard, basket UI, filters) — not a place to reach for Redux
    by default.
 
-No formal ADR exists yet for the headless-vs-hybrid decision (it's
-recorded in `01_CLAUDE.md` §3.4 and the published Lakbay Blueprint
-artifact's "Frontend: React, Redux, and why not Razor-hosted" section) —
-worth promoting to a proper `ADR-0004` in `Lakbay.Docs` the next time
-someone touches this decision, rather than leaving it only in prose.
+See [ADR-0006](../Lakbay.Docs/docs/adr/ADR-0006-headless-cms-no-razor-ui.md)
+for the full reasoning — `Lakbay.Cms` never renders a page or holds
+Razor/UI code; this repo owns 100% of presentation. This is the direct
+opposite of the ECMS/Prototype hybrid (Razor page shells in the CMS with
+React embedded inside them) — if you're ever tempted to add a `Views/`
+folder to `Lakbay.Cms` for the public site, read this ADR again first.
 
 ## What this repo is
 
