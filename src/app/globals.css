@@ -1,21 +1,51 @@
 @import "tailwindcss";
 
+/* Same palette as the Lakbay Blueprint / System Map artifacts, so the
+   storefront reads as the same product as the planning docs, not a
+   restyle. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eef3f1;
+  --surface: #ffffff;
+  --foreground: #10262a;
+  --foreground-soft: #45605f;
+  --foreground-faint: #6c8482;
+  --teal-deep: #0e3b3e;
+  --teal-mid: #1f6f72;
+  --teal-line: rgba(14, 59, 62, 0.14);
+  --amber: #b9770e;
+  --amber-ink: #7a4e07;
+  --amber-soft: #f6e7cb;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-faint: var(--foreground-faint);
+  --color-teal-deep: var(--teal-deep);
+  --color-teal-mid: var(--teal-mid);
+  --color-teal-line: var(--teal-line);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-amber-soft: var(--amber-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b1e20;
+    --surface: #123032;
+    --foreground: #e9f2f0;
+    --foreground-soft: #afc7c4;
+    --foreground-faint: #7f9997;
+    --teal-deep: #bfe3e0;
+    --teal-mid: #74c6c2;
+    --teal-line: rgba(191, 227, 224, 0.18);
+    --amber: #efb458;
+    --amber-ink: #f4c87b;
+    --amber-soft: rgba(239, 180, 88, 0.16);
   }
 }
 
