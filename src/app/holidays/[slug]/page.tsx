@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useGetProductQuery } from "@/lib/availabilityApi";
 import { PRODUCT_LINE_META, boardBasisLabel, destinationLocation, formatDate, formatPhp } from "@/lib/catalog";
@@ -37,14 +38,29 @@ export default function HolidayPage({
   return (
     <main className="flex-1">
       <section
-        className="border-b border-teal-line px-6 py-14 text-center text-white"
+        className="relative overflow-hidden border-b border-teal-line px-6 py-14 text-center text-white"
         style={{ backgroundColor: meta.accent }}
       >
-        <span className="text-3xl">{meta.emoji}</span>
-        <h1 className="mx-auto mt-3 max-w-2xl text-3xl font-semibold text-balance">
-          {product.name}
-        </h1>
-        <p className="mt-2 text-white/85">{destinationLocation(product.destination)}</p>
+        {product.heroImageUrl && (
+          <>
+            <Image
+              src={product.heroImageUrl}
+              alt={product.name}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/40" />
+          </>
+        )}
+        <div className="relative">
+          <span className="text-3xl">{meta.emoji}</span>
+          <h1 className="mx-auto mt-3 max-w-2xl text-3xl font-semibold text-balance">
+            {product.name}
+          </h1>
+          <p className="mt-2 text-white/85">{destinationLocation(product.destination)}</p>
+        </div>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 py-10">
@@ -52,11 +68,105 @@ export default function HolidayPage({
           href={`/collections/${product.productLine.toLowerCase()}`}
           className="text-sm text-teal-mid hover:underline"
         >
-          ← Back to {product.productLine[0] + product.productLine.slice(1).toLowerCase()}
+          ← Back to {meta.label}
         </Link>
 
         <p className="mt-6 text-foreground">{product.summary}</p>
-        <p className="mt-4 text-sm text-foreground-soft">{product.destination.description}</p>
+
+        {/* ADR-0017: Country > Region > Destination, each level carrying
+            its own highlights — the "details of places can be
+            highlighted" the geography restructure exists for. */}
+        <p className="mt-4 text-xs font-mono uppercase tracking-wide text-foreground-faint">
+          {product.destination.region.country.name} → {product.destination.region.name} → {product.destination.name}
+        </p>
+        <p className="mt-2 text-sm text-foreground-soft">{product.destination.description}</p>
+
+        {(product.destination.region.highlights.length > 0 || product.destination.region.country.highlights.length > 0) && (
+          <div className="mt-4 rounded-xl border border-teal-line bg-surface p-5">
+            <h2 className="text-sm font-semibold text-teal-deep">About {product.destination.region.name}</h2>
+            <ul className="mt-2 space-y-1.5 text-sm text-foreground-soft">
+              {product.destination.region.highlights.map((h) => (
+                <li key={h} className="flex gap-2">
+                  <span className="text-teal-mid">•</span>
+                  {h}
+                </li>
+              ))}
+              {product.destination.region.country.highlights.map((h) => (
+                <li key={h} className="flex gap-2 text-foreground-faint">
+                  <span className="text-foreground-faint">•</span>
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* A real, prominent section — not a small text card — matching
+            Inntravel's own dedicated Accommodation treatment (verified
+            live, 2026-09-08). Photo reuses the destination's own real
+            image; see ADR-0018 for why no photo claims to depict the
+            specific (invented) property. */}
+        {product.accommodation && (
+          <div className="mt-6 overflow-hidden rounded-xl border border-teal-line bg-surface shadow-sm sm:grid sm:grid-cols-2">
+            {product.accommodation.heroImageUrl && (
+              <div className="relative h-56 w-full sm:h-full">
+                <Image
+                  src={product.accommodation.heroImageUrl}
+                  alt={product.accommodation.name}
+                  fill
+                  sizes="(min-width: 640px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <div className="p-5">
+              <h2 className="text-lg font-semibold text-teal-deep">Where you&apos;ll stay</h2>
+              <p className="mt-1 font-medium text-foreground">{product.accommodation.name}</p>
+              <p className="mt-1 text-sm text-foreground-soft">{product.accommodation.description}</p>
+              {product.accommodation.highlights.length > 0 && (
+                <ul className="mt-2 space-y-1.5 text-sm text-foreground-soft">
+                  {product.accommodation.highlights.map((h) => (
+                    <li key={h} className="flex gap-2">
+                      <span className="text-teal-mid">•</span>
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
+        {(product.includedActivities.length > 0 || product.optionalActivities.length > 0) && (
+          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {product.includedActivities.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold text-teal-deep">What&apos;s included</h2>
+                <ul className="mt-2 space-y-1.5 text-sm text-foreground-soft">
+                  {product.includedActivities.map((activity) => (
+                    <li key={activity} className="flex gap-2">
+                      <span className="text-teal-mid">✓</span>
+                      {activity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {product.optionalActivities.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold text-teal-deep">Optional extras</h2>
+                <ul className="mt-2 space-y-1.5 text-sm text-foreground-soft">
+                  {product.optionalActivities.map((activity) => (
+                    <li key={activity} className="flex gap-2">
+                      <span className="text-foreground-faint">+</span>
+                      {activity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-teal-line bg-surface p-5 sm:grid-cols-4">
           <div>

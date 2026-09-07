@@ -1,29 +1,57 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useGetProductLinesQuery } from "@/lib/availabilityApi";
+import { useGetHomeContentQuery } from "@/lib/cmsContentApi";
 import { PRODUCT_LINE_META } from "@/lib/catalog";
+import { CmsSections } from "@/components/blocks/BlockRegistry";
 
 /**
- * Phase 2: the real catalog homepage, querying Lakbay.AvailabilityApi
- * directly (ADR-0007) — no placeholder content. Four product lines,
- * driven entirely by what the API actually returns, not a hard-coded
- * list — if a fifth line is ever added to the schema, this page picks it
- * up with no code change.
+ * Phase 2's catalog grid (Lakbay.AvailabilityApi, ADR-0007) plus Phase 3's
+ * real Cms-authored hero and page sections (Lakbay.Cms's Content
+ * Delivery API, ADR-0007's "single-page content" path) — two different
+ * backends, each doing the job it's actually good at: AvailabilityApi
+ * for the product-line grid (search/browse), Cms for editorial copy.
+ * The hero falls back to static copy if Cms isn't reachable, so the page
+ * still works with only Lakbay.AvailabilityApi running.
  */
 export default function Home() {
   const { data: productLines, error, isLoading } = useGetProductLinesQuery();
+  const { data: homeContent } = useGetHomeContentQuery();
 
   return (
     <main className="flex-1">
-      <section className="border-b border-teal-line bg-teal-deep px-6 py-16 text-center text-white">
-        <p className="font-mono text-xs uppercase tracking-widest text-white/70">
-          Philippines-first holidays
-        </p>
-        <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-semibold text-balance">
-          Four ways to see the Philippines, chosen for what makes each place worth the trip
-        </h1>
-      </section>
+      {homeContent ? (
+        <section className="relative overflow-hidden border-b border-teal-line py-20 text-center text-white">
+          <Image
+            src={homeContent.heroImageUrl}
+            alt={homeContent.heading}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative px-6">
+            <p className="font-mono text-xs uppercase tracking-widest text-white/80">
+              {homeContent.subtext}
+            </p>
+            <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-semibold text-balance">
+              {homeContent.heading}
+            </h1>
+          </div>
+        </section>
+      ) : (
+        <section className="border-b border-teal-line bg-teal-deep px-6 py-16 text-center text-white">
+          <p className="font-mono text-xs uppercase tracking-widest text-white/70">
+            Philippines-first holidays
+          </p>
+          <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-semibold text-balance">
+            Four ways to see the Philippines, chosen for what makes each place worth the trip
+          </h1>
+        </section>
+      )}
 
       <section className="mx-auto max-w-5xl px-6 py-12">
         {isLoading && (
@@ -58,6 +86,13 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* The hero above already covers homeContent's own "hero"-type
+          section (same copy, top-level fields) — only render the rest
+          here, via the block registry, to avoid showing it twice. */}
+      {homeContent && (
+        <CmsSections sections={homeContent.sections.filter((s) => s.type !== "hero")} />
+      )}
     </main>
   );
 }

@@ -1,10 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type {
+  Accommodation,
+  Activity,
   Destination,
   Product,
   ProductFilter,
   ProductLine,
   ProductLineCode,
+  Region,
+  RoomType,
 } from "@lakbay/contracts";
 
 /**
@@ -39,11 +43,37 @@ function unwrap<T>(response: GraphQLResponse<T>): T {
 }
 
 const PRODUCT_LINE_FIELDS = `code name tagline countries`;
-const DESTINATION_FIELDS = `id name country region description latitude longitude`;
+// ADR-0017: region/country are nested objects now, not flat strings —
+// each level carries its own highlights, matching the real ECMS
+// Country→Region→Destination→Accommodation tree shape.
+const COUNTRY_FIELDS = `id name code description highlights`;
+const REGION_FIELDS = `id name slug description highlights country { ${COUNTRY_FIELDS} }`;
+// ADR-0019: includedPerks/optionalAddOns are resort-wide, shared by any
+// stay at this destination regardless of which Accommodation.
+const DESTINATION_FIELDS = `id name slug country description latitude longitude includedPerks optionalAddOns region { ${REGION_FIELDS} }`;
+// ADR-0020: real Philippine accommodation categories — not every stay is a Hotel.
+const ACCOMMODATION_FIELDS = `id name description highlights heroImageUrl type tags officialRating`;
+// A fuller variant used only where the owning Destination is actually
+// needed (the Stays search/detail flow) — kept separate from
+// ACCOMMODATION_FIELDS so the existing Product query below doesn't fetch
+// a redundant nested Destination it already has directly.
+const ACCOMMODATION_WITH_DESTINATION_FIELDS = `${ACCOMMODATION_FIELDS} destination { ${DESTINATION_FIELDS} }`;
+const ROOM_TYPE_FIELDS = `
+  id name description sizeSqm bedConfiguration maxOccupancy boardBasis accommodationId
+  priceBands { label pricePhp startDate endDate }
+  heroImageUrl monthlyRatePhp
+`;
+// ADR-0020: the fair-price local-activities marketplace — independent of any Product package.
+const ACTIVITY_FIELDS = `
+  id name description durationLabel pricePhp includes heroImageUrl
+  destination { ${DESTINATION_FIELDS} }
+`;
 const PRODUCT_SUMMARY_FIELDS = `
   id slug name productLine summary itineraryDays boardBasis
   availableCount isSoldOut heroImageUrl
   priceBands { label pricePhp startDate endDate }
+  accommodation { ${ACCOMMODATION_FIELDS} }
+  includedActivities optionalActivities
   destination { ${DESTINATION_FIELDS} }
 `;
 
@@ -68,6 +98,15 @@ export const availabilityApi = createApi({
       query: graphql(`{ productLines { ${PRODUCT_LINE_FIELDS} } }`),
       transformResponse: (response: GraphQLResponse<{ productLines: ProductLine[] }>) =>
         unwrap(response).productLines,
+    }),
+
+    getRegions: builder.query<Region[], ProductLineCode | undefined>({
+      query: (productLine) =>
+        graphql<{ productLine?: ProductLineCode }>(
+          `query($productLine: ProductLineCode) { regions(productLine: $productLine) { ${REGION_FIELDS} } }`,
+        )({ productLine }),
+      transformResponse: (response: GraphQLResponse<{ regions: Region[] }>) =>
+        unwrap(response).regions,
     }),
 
     getDestinations: builder.query<Destination[], ProductLineCode | undefined>({
@@ -96,13 +135,52 @@ export const availabilityApi = createApi({
       transformResponse: (response: GraphQLResponse<{ product: Product | null }>) =>
         unwrap(response).product,
     }),
+
+    // ADR-0019: the Stays page's main query. Called with no arguments to
+    // fetch the full (small) list and filter destination/tag client-side —
+    // same pattern the collection pages already use for UI-driven
+    // filtering — even though the resolver also accepts server-side
+    // destinationId/tag filters.
+    getAccommodations: builder.query<Accommodation[], { destinationId?: string; tag?: string } | void>({
+      query: (filter) =>
+        graphql<{ destinationId?: string; tag?: string }>(
+          `query($destinationId: String, $tag: String) { accommodations(destinationId: $destinationId, tag: $tag) { ${ACCOMMODATION_WITH_DESTINATION_FIELDS} } }`,
+        )({ destinationId: filter?.destinationId, tag: filter?.tag }),
+      transformResponse: (response: GraphQLResponse<{ accommodations: Accommodation[] }>) =>
+        unwrap(response).accommodations,
+    }),
+
+    getRoomTypes: builder.query<RoomType[], string>({
+      query: (accommodationId) =>
+        graphql<{ accommodationId: string }>(
+          `query($accommodationId: String!) { roomTypes(accommodationId: $accommodationId) { ${ROOM_TYPE_FIELDS} } }`,
+        )({ accommodationId }),
+      transformResponse: (response: GraphQLResponse<{ roomTypes: RoomType[] }>) =>
+        unwrap(response).roomTypes,
+    }),
+
+    // ADR-0020: fair-price local activities, independent of any Product
+    // package — called with no arguments to fetch the full (small) list
+    // and filter destination client-side, same pattern as getAccommodations.
+    getActivities: builder.query<Activity[], string | void>({
+      query: (destinationId) =>
+        graphql<{ destinationId?: string }>(
+          `query($destinationId: String) { activities(destinationId: $destinationId) { ${ACTIVITY_FIELDS} } }`,
+        )({ destinationId: destinationId ?? undefined }),
+      transformResponse: (response: GraphQLResponse<{ activities: Activity[] }>) =>
+        unwrap(response).activities,
+    }),
   }),
 });
 
 export const {
   useGetStatusQuery,
   useGetProductLinesQuery,
+  useGetRegionsQuery,
   useGetDestinationsQuery,
   useGetProductsQuery,
   useGetProductQuery,
+  useGetAccommodationsQuery,
+  useGetRoomTypesQuery,
+  useGetActivitiesQuery,
 } = availabilityApi;

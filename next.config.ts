@@ -2,6 +2,17 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // Product hero images (Product.heroImageUrl) are real photos hotlinked
+    // from Wikimedia Commons for now (Special:FilePath — Commons' own
+    // documented stable-redirect mechanism for exactly this use), not
+    // uploaded into any Lakbay media store yet. next/image requires every
+    // external host explicitly allowlisted.
+    remotePatterns: [
+      { protocol: "https", hostname: "commons.wikimedia.org" },
+      { protocol: "https", hostname: "upload.wikimedia.org" },
+    ],
+  },
   // @lakbay/contracts is a local `file:` dependency shipping raw .ts
   // source (see its package.json — no build step, generated/types.ts is
   // the committed output). Next.js doesn't transpile anything under

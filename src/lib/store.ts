@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { availabilityApi } from "./availabilityApi";
+import { cmsContentApi } from "./cmsContentApi";
 
 /**
  * RTK Query owns server-state/GraphQL caching (availabilityApi below,
@@ -12,9 +13,10 @@ import { availabilityApi } from "./availabilityApi";
 export const store = configureStore({
   reducer: {
     [availabilityApi.reducerPath]: availabilityApi.reducer,
+    [cmsContentApi.reducerPath]: cmsContentApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(availabilityApi.middleware),
+    getDefaultMiddleware().concat(availabilityApi.middleware, cmsContentApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

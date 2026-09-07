@@ -19,13 +19,19 @@ export function SiteHeader() {
           Lakbay
         </Link>
         <nav className="flex gap-5 text-sm">
+          <Link href="/stays" className="text-foreground-soft transition hover:text-teal-deep">
+            🏨 Stays
+          </Link>
+          <Link href="/activities" className="text-foreground-soft transition hover:text-teal-deep">
+            🎟️ Activities
+          </Link>
           {NAV_ORDER.map((code) => (
             <Link
               key={code}
               href={`/collections/${code.toLowerCase()}`}
               className="text-foreground-soft transition hover:text-teal-deep"
             >
-              {PRODUCT_LINE_META[code].emoji} {code[0] + code.slice(1).toLowerCase()}
+              {PRODUCT_LINE_META[code].emoji} {PRODUCT_LINE_META[code].label}
             </Link>
           ))}
         </nav>
