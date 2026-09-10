@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@lakbay/contracts": ["../Lakbay.Contracts/typescript/generated/types.ts"]
     }
   },
   "include": [
