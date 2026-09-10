@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   description: "A Philippines-first holiday and experience platform.",
 };
 
+/**
+ * Next.js App Router's root layout — wraps every page in the app
+ * (`children`). A Server Component (no "use client" here), so the Redux
+ * `<Provider>` it needs is isolated into the small ./providers.tsx Client
+ * Component instead of making this whole file client-rendered. SiteHeader
+ * renders once here rather than being repeated per page.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
